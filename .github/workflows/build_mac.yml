@@ -1,0 +1,39 @@
+name: Build Mac App
+
+# 触发条件：当你把代码推送到 main 分支时自动开始
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest  # 指定使用 GitHub 的最新 macOS 系统
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'  # 使用 Python 3.12
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+
+    - name: Build with PyInstaller
+      run: |
+        # Mac 下的分隔符是冒号 (:)
+        # 这里暂时不加 --icon 参数，避免文件缺失报错
+        pyinstaller --noconsole --onefile --clean \
+          --name "AutoGetCoin" \
+          --add-data "cookie_guide.png:." \
+          auto_tool_final_v9.py
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Mac-App-Bundle
+        path: dist/AutoGetCoin.app  # 上传打包好的 .app
