@@ -28,11 +28,6 @@ class AutoBotGUI:
         self.root = root
         self.root.title("全自动体力获取助手 v1.0")
         self.root.geometry("900x750")
-        # 🟢 新增：设置窗口左上角图标 (必须使用 resource_path 确保打包后能找到)
-        try:
-            self.root.iconbitmap(resource_path("app_icon.ico"))
-        except Exception:
-            pass  # 防止没有图标文件时报错崩溃
 
         # === 主题配色 ===
         self.themes = {
@@ -415,4 +410,5 @@ if __name__ == "__main__":
         root.mainloop()
     else:
         temp_root.destroy()
+
         sys.exit()  # 用户拒绝，直接退出
