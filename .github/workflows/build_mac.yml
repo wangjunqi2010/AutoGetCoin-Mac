@@ -1,39 +1,46 @@
-name: Build Mac App
+name: Build macOS App (Apple Silicon)
 
-# 触发条件：当你把代码推送到 main 分支时自动开始
 on:
   push:
-    branches: [ "main" ]
+    tags:
+      - "v*"
   workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: macos-latest  # 指定使用 GitHub 的最新 macOS 系统
+  build-macos:
+    runs-on: macos-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout source
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.12'  # 使用 Python 3.12
+      - name: Setup Python (ARM)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
-    - name: Install dependencies
-      run: |
-        pip install -r requirements.txt
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller
+          pip install -r requirements.txt
 
-    - name: Build with PyInstaller
-      run: |
-        # Mac 下的分隔符是冒号 (:)
-        # 这里暂时不加 --icon 参数，避免文件缺失报错
-        pyinstaller --noconsole --onefile --clean \
-          --name "AutoGetCoin" \
-          --add-data "cookie_guide.png:." \
-          auto_gui_package.py
+      - name: Build macOS App
+        run: |
+          pyinstaller \
+            --noconfirm \
+            --windowed \
+            --name "AutoBotGUI" \
+            --add-data "cookie_guide.png:." \
+            auto_gui_package.py
 
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: Mac-App-Bundle
-        path: dist/AutoGetCoin.app  # 上传打包好的 .app
+      - name: Zip app
+        run: |
+          cd dist
+          ditto -c -k --sequesterRsrc --keepParent AutoBotGUI.app AutoBotGUI-macos-arm64.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AutoBotGUI-macOS
+          path: dist/AutoBotGUI-macos-arm64.zip
